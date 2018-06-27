@@ -1,0 +1,55 @@
+---
+- name: Install httpd
+  become: True
+  package:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  with_items:
+    - httpd
+    - libselinux-python
+    - libsemanage-python
+
+- name: Deploy httpd.conf
+  become: True
+  template:
+    src: httpd.conf.j2
+    dest: /etc/httpd/conf/httpd.conf
+    owner: root
+    group: root
+    mode: 0644
+    seuser: system_u
+    serole: object_r
+    setype: httpd_config_t
+    selevel: s0
+  notify:
+    - Restart httpd
+
+- name: Deploy userdir.conf
+  become: True
+  copy:
+    src: userdir.conf
+    dest: /etc/httpd/conf.d/userdir.conf
+    owner: root
+    group: root
+    mode: 0644
+    seuser: system_u
+    serole: object_r
+    setype: httpd_config_t
+    selevel: s0
+  notify:
+    - Restart httpd
+
+- name: Enable httpd_enable_homedirs
+  become: True
+  seboolean:
+    name: httpd_enable_homedirs
+    persistent: yes
+    state: yes
+
+- name: Enable and start httpd
+  become: True
+  systemd:
+    name: httpd
+    enabled: yes
+    state: started

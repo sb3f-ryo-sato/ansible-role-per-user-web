@@ -1,0 +1,3 @@
+---
+domain_name: localdomain
+server_name: "{{ ansible_hostname }}.{{ domain_name }}"
